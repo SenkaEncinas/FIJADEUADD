@@ -26,6 +26,7 @@ class NewsPostDto {
     );
   }
 
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

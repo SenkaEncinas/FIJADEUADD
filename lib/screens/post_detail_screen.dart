@@ -27,15 +27,62 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     });
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildInfoCard(String title, List<Widget> children) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 20, color: Colors.blue),
           const SizedBox(width: 8),
-          Expanded(child: Text(text)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -47,7 +94,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalles de la Publicación'),
+        title: const Text('Detalles del Producto'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -114,11 +161,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   // Título y precio
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
                           post.title,
-                          style: theme.textTheme.headlineSmall?.copyWith(
+                          style: const TextStyle(
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -131,7 +180,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          '\$${post.price}',
+                          '\$${post.price.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -141,76 +190,43 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Publicado el ${post.publishDate.day}/${post.publishDate.month}/${post.publishDate.year}',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
                   // Información básica
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _buildInfoRow(Icons.location_on, post.location),
-                          _buildInfoRow(Icons.assessment, 'Condición: ${post.condition}'),
-                          _buildInfoRow(Icons.payment, 'Método de pago: ${post.paymentMethod}'),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                  _buildInfoCard('Información del Producto', [
+                    _buildInfoRow(
+                        Icons.location_on, 'Ubicación', post.location),
+                    _buildInfoRow(
+                        Icons.assessment, 'Condición', post.condition),
+                    _buildInfoRow(Icons.payment, 'Método de pago',
+                        post.paymentMethod),
+                  ]),
 
                   // Descripción
-                  Text(
-                    'Descripción',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  _buildInfoCard('Descripción', [
+                    Text(
+                      post.description,
+                      style: const TextStyle(fontSize: 16),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        post.description,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                  ]),
 
                   // Contacto
-                  Text(
-                    'Información de Contacto',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _buildInfoRow(Icons.email, post.email),
-                          if (post.phoneNumber.isNotEmpty)
-                            _buildInfoRow(Icons.phone, post.phoneNumber),
-                          if (post.whatsAppLink.isNotEmpty)
-                            _buildInfoRow(Icons.chat, 'WhatsApp: ${post.whatsAppLink}'),
-                        ],
-                      ),
-                    ),
-                  ),
+                  _buildInfoCard('Información de Contacto', [
+                    _buildInfoRow(Icons.email, 'Email', post.email),
+                    if (post.phoneNumber.isNotEmpty)
+                      _buildInfoRow(
+                          Icons.phone, 'Teléfono', post.phoneNumber),
+                    if (post.whatsAppLink.isNotEmpty)
+                      _buildInfoRow(Icons.chat, 'WhatsApp', post.whatsAppLink),
+                  ]),
                 ],
               ),
             );
