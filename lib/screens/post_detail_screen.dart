@@ -88,6 +88,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     );
   }
 
+  Widget _buildCategoryChip(String category) {
+    return Chip(
+      label: Text(
+        category,
+        style: const TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Colors.blue,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -158,56 +169,63 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Título y precio
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // Título, categoría y precio
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          post.title,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              post.title,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: theme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '\$${post.price.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: theme.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: theme.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '\$${post.price.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: theme.primaryColor,
-                          ),
+                      const SizedBox(height: 8),
+                      if (post.category != null && post.category!.isNotEmpty)
+                        _buildCategoryChip(post.category!),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Publicado el ${post.publishDate.day}/${post.publishDate.month}/${post.publishDate.year}',
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Publicado el ${post.publishDate.day}/${post.publishDate.month}/${post.publishDate.year}',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
-                  ),
                   const SizedBox(height: 20),
 
-                  // Información básica
+                  // Información básica (ahora incluye categoría)
                   _buildInfoCard('Información del Producto', [
-                    _buildInfoRow(
-                        Icons.location_on, 'Ubicación', post.location),
-                    _buildInfoRow(
-                        Icons.assessment, 'Condición', post.condition),
-                    _buildInfoRow(Icons.payment, 'Método de pago',
-                        post.paymentMethod),
+                    if (post.category != null && post.category!.isNotEmpty)
+                      _buildInfoRow(Icons.category, 'Categoría', post.category!),
+                    _buildInfoRow(Icons.location_on, 'Ubicación', post.location),
+                    _buildInfoRow(Icons.assessment, 'Condición', post.condition),
+                    _buildInfoRow(Icons.payment, 'Método de pago', post.paymentMethod),
                   ]),
 
                   // Descripción
@@ -222,8 +240,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   _buildInfoCard('Información de Contacto', [
                     _buildInfoRow(Icons.email, 'Email', post.email),
                     if (post.phoneNumber.isNotEmpty)
-                      _buildInfoRow(
-                          Icons.phone, 'Teléfono', post.phoneNumber),
+                      _buildInfoRow(Icons.phone, 'Teléfono', post.phoneNumber),
                     if (post.whatsAppLink.isNotEmpty)
                       _buildInfoRow(Icons.chat, 'WhatsApp', post.whatsAppLink),
                   ]),

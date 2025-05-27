@@ -20,6 +20,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _postService = PostService();
 
+  // Controllers
   final _titleController = TextEditingController();
   final _priceController = TextEditingController();
   final _locationController = TextEditingController();
@@ -30,10 +31,22 @@ class _PostFormScreenState extends State<PostFormScreen> {
   final _emailController = TextEditingController();
   final _whatsappController = TextEditingController();
   final _imageUrlController = TextEditingController();
+  final _categoryController = TextEditingController();
 
+  // Variables de estado
   File? _selectedImage;
   String? _uploadedImageUrl;
   bool _loading = false;
+  final List<String> _categories = [
+    'Electronica',
+    'Ropa',
+    'Hogar',
+    'Deportes',
+    'Juguetes',
+    'Libros',
+    'Otros'
+  ];
+  String? _selectedCategory;
 
   @override
   void initState() {
@@ -44,18 +57,29 @@ class _PostFormScreenState extends State<PostFormScreen> {
       _locationController.text = widget.editPost!.location;
       _imageUrlController.text = widget.editPost!.imageUrl;
       _uploadedImageUrl = widget.editPost!.imageUrl;
+      _selectedCategory = widget.editPost!.category;
+      _categoryController.text = widget.editPost!.category ?? '';
     }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _priceController.dispose();
+    _locationController.dispose();
+    _conditionController.dispose();
+    _paymentMethodController.dispose();
+    _descriptionController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _whatsappController.dispose();
+    _imageUrlController.dispose();
+    _categoryController.dispose();
+    super.dispose();
   }
 
   void _save() async {
     if (!_formKey.currentState!.validate()) return;
-
-    if (_imageUrlController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debes subir una imagen')),
-      );
-      return;
-    }
 
     setState(() => _loading = true);
 
@@ -69,7 +93,8 @@ class _PostFormScreenState extends State<PostFormScreen> {
       phoneNumber: _phoneController.text,
       email: _emailController.text,
       whatsAppLink: _whatsappController.text,
-      imageUrl: _imageUrlController.text,
+      imageUrl: _imageUrlController.text, // Puede estar vacío
+      category: _selectedCategory ?? _categories.first,
     );
 
     bool success;
@@ -82,8 +107,8 @@ class _PostFormScreenState extends State<PostFormScreen> {
     if (!mounted) return;
     if (success) {
       final message = widget.editPost != null
-        ? '¡Publicación actualizada con éxito!'
-        : '¡Publicación guardada con éxito!';
+          ? '¡Publicación actualizada con éxito!'
+          : '¡Publicación guardada con éxito!';
       Navigator.pop(context, message);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -122,9 +147,11 @@ class _PostFormScreenState extends State<PostFormScreen> {
         _imageUrlController.text = imageUrl ?? '';
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al subir imagen')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al subir imagen')),
+        );
+      }
     }
   }
 
@@ -139,43 +166,222 @@ class _PostFormScreenState extends State<PostFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? 'Editar publicación' : 'Nueva publicación'),
+        elevation: 2,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(controller: _titleController, decoration: const InputDecoration(labelText: 'Título'), validator: _required),
-              TextFormField(controller: _priceController, decoration: const InputDecoration(labelText: 'Precio'), keyboardType: TextInputType.number, validator: _required),
-              TextFormField(controller: _locationController, decoration: const InputDecoration(labelText: 'Ubicación'), validator: _required),
-              TextFormField(controller: _conditionController, decoration: const InputDecoration(labelText: 'Condición'), validator: _required),
-              TextFormField(controller: _paymentMethodController, decoration: const InputDecoration(labelText: 'Método de pago'), validator: _required),
-              TextFormField(controller: _descriptionController, decoration: const InputDecoration(labelText: 'Descripción'), maxLines: 3, validator: _required),
-              TextFormField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Teléfono'), validator: _required),
-              TextFormField(controller: _emailController, decoration: const InputDecoration(labelText: 'Email'), validator: _required),
-              TextFormField(controller: _whatsappController, decoration: const InputDecoration(labelText: 'Link de WhatsApp'), validator: _required),
-              TextFormField(controller: _imageUrlController, decoration: const InputDecoration(labelText: 'URL de imagen'), validator: _required),
-              const SizedBox(height: 20),
-
-              ElevatedButton.icon(
-                onPressed: _pickAndUploadImage,
-                icon: const Icon(Icons.image),
-                label: const Text('Subir imagen'),
-              ),
-
-              if (_uploadedImageUrl != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Image.network(_uploadedImageUrl!, height: 150),
+              // Sección de imagen (ahora opcional)
+              Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      if (_uploadedImageUrl != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              _uploadedImageUrl!,
+                              height: 150,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ElevatedButton.icon(
+                        onPressed: _pickAndUploadImage,
+                        icon: const Icon(Icons.image),
+                        label: Text(_uploadedImageUrl == null 
+                            ? 'Agregar imagen (opcional)' 
+                            : 'Cambiar imagen'),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                      ),
+                      if (_uploadedImageUrl != null)
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _uploadedImageUrl = null;
+                              _imageUrlController.text = '';
+                            });
+                          },
+                          child: const Text(
+                            'Eliminar imagen',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-
+              ),
+              
               const SizedBox(height: 20),
+              
+              // Resto del formulario (igual que antes)
+              Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Título',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _priceController,
+                        decoration: const InputDecoration(
+                          labelText: 'Precio',
+                          border: OutlineInputBorder(),
+                          prefixText: '\$ ',
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _locationController,
+                        decoration: const InputDecoration(
+                          labelText: 'Ubicación',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: _selectedCategory,
+                        decoration: const InputDecoration(
+                          labelText: 'Categoría',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _categories.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            _selectedCategory = newValue;
+                          });
+                        },
+                        validator: (value) => value == null ? 'Selecciona una categoría' : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 20),
+              
+              Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _conditionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Condición',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _paymentMethodController,
+                        decoration: const InputDecoration(
+                          labelText: 'Método de pago',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Descripción',
+                          border: OutlineInputBorder(),
+                          alignLabelWithHint: true,
+                        ),
+                        maxLines: 3,
+                        validator: _required,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 20),
+              
+              Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Teléfono',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.phone,
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _whatsappController,
+                        decoration: const InputDecoration(
+                          labelText: 'Link de WhatsApp',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: _required,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
               ElevatedButton(
                 onPressed: _loading ? null : _save,
-                child: Text(_loading
-                    ? 'Guardando...'
-                    : isEdit ? 'Actualizar' : 'Crear'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _loading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        isEdit ? 'ACTUALIZAR PUBLICACIÓN' : 'CREAR PUBLICACIÓN',
+                        style: const TextStyle(fontSize: 16),
+                      ),
               ),
             ],
           ),

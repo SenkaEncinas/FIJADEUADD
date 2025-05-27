@@ -7,7 +7,7 @@ import '../models/user/user_login_dto.dart';
 import '../models/user/user_register_dto.dart';
 
 class AuthService {
-  final String _baseUrl = 'https://app-250521114907.azurewebsites.net/api/auth';
+  final String _baseUrl = 'https://app-250526202920.azurewebsites.net/api/auth';
 
   Future<bool> register(UserRegisterDto dto) async {
     final response = await http.post(

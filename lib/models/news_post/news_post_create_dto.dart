@@ -9,6 +9,7 @@ class NewsPostCreateDto {
   final String email;
   final String whatsAppLink;
   final String imageUrl;
+  final String category;
 
   NewsPostCreateDto({
     required this.title,
@@ -21,6 +22,7 @@ class NewsPostCreateDto {
     required this.email,
     required this.whatsAppLink,
     required this.imageUrl,
+    required this.category,
   });
 
   Map<String, dynamic> toJson() {
@@ -35,6 +37,7 @@ class NewsPostCreateDto {
       'email': email,
       'whatsAppLink': whatsAppLink,
       'imageUrl': imageUrl,
+      'category': category,
     };
   }
 }

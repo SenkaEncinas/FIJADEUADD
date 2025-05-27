@@ -10,6 +10,7 @@ class NewsPostDetailDto {
   final String whatsAppLink;
   final String imageUrl;
   final DateTime publishDate;
+  final String category;
 
   NewsPostDetailDto({
     required this.title,
@@ -23,6 +24,8 @@ class NewsPostDetailDto {
     required this.whatsAppLink,
     required this.imageUrl,
     required this.publishDate,
+    required this.category,
+
   });
 
   factory NewsPostDetailDto.fromJson(Map<String, dynamic> json) {
@@ -38,6 +41,7 @@ class NewsPostDetailDto {
       whatsAppLink: json['whatsAppLink'],
       imageUrl: json['imageUrl'],
       publishDate: DateTime.parse(json['publishDate']),
+      category: json['category'],
     );
   }
 }

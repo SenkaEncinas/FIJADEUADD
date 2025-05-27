@@ -5,6 +5,7 @@ class NewsPostDto {
   final String location;
   final String imageUrl;
   final DateTime publishDate;
+  final String category;
 
   NewsPostDto({
     required this.id,
@@ -13,6 +14,7 @@ class NewsPostDto {
     required this.location,
     required this.imageUrl,
     required this.publishDate,
+    required this.category,
   });
 
   factory NewsPostDto.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class NewsPostDto {
       location: json['location'],
       imageUrl: json['imageUrl'],
       publishDate: DateTime.parse(json['publishDate']),
+      category: json['category'] ?? '', // Optional field
     );
   }
 
@@ -35,6 +38,7 @@ class NewsPostDto {
       'location': location,
       'imageUrl': imageUrl,
       'publishDate': publishDate.toIso8601String(),
+      'category': category,
     };
   }
 }

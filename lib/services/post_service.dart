@@ -6,7 +6,7 @@ import '../models/news_post/news_post_detail_dto.dart';
 import '../models/news_post/news_post_create_dto.dart';
 
 class PostService {
-  final String _baseUrl = 'https://app-250521114907.azurewebsites.net/api/newspost';
+  final String _baseUrl = 'https://app-250526202920.azurewebsites.net/api/newspost';
 
   Future<List<NewsPostDto>> getAllPosts() async {
     final response = await http.get(Uri.parse(_baseUrl));
