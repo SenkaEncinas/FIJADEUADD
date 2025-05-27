@@ -20,12 +20,13 @@
     double _maxPrice = 10000;
     final List<String> _categories = [
       'Todas',
-      'Electrónica',
+      'Electronica',
       'Ropa',
       'Hogar',
       'Deportes',
       'Juguetes',
       'Libros',
+      'Comida',
       'Otros'
     ];
 

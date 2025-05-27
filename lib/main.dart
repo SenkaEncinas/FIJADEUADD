@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'Uadd App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF2E7D32)),   //https://ibb.co/cSctKMXV
         useMaterial3: true,
       ),
       home: const LoginScreen(),

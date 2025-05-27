@@ -1,7 +1,3 @@
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import '../models/news_post/news_post_create_dto.dart';
 import '../models/news_post/news_post_dto.dart';
@@ -34,8 +30,6 @@ class _PostFormScreenState extends State<PostFormScreen> {
   final _categoryController = TextEditingController();
 
   // Variables de estado
-  File? _selectedImage;
-  String? _uploadedImageUrl;
   bool _loading = false;
   final List<String> _categories = [
     'Electronica',
@@ -44,6 +38,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
     'Deportes',
     'Juguetes',
     'Libros',
+    'Comida',
     'Otros'
   ];
   String? _selectedCategory;
@@ -56,7 +51,6 @@ class _PostFormScreenState extends State<PostFormScreen> {
       _priceController.text = widget.editPost!.price.toString();
       _locationController.text = widget.editPost!.location;
       _imageUrlController.text = widget.editPost!.imageUrl;
-      _uploadedImageUrl = widget.editPost!.imageUrl;
       _selectedCategory = widget.editPost!.category;
       _categoryController.text = widget.editPost!.category ?? '';
     }
@@ -93,7 +87,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
       phoneNumber: _phoneController.text,
       email: _emailController.text,
       whatsAppLink: _whatsappController.text,
-      imageUrl: _imageUrlController.text, // Puede estar vacío
+      imageUrl: _imageUrlController.text,
       category: _selectedCategory ?? _categories.first,
     );
 
@@ -119,47 +113,6 @@ class _PostFormScreenState extends State<PostFormScreen> {
     setState(() => _loading = false);
   }
 
-  Future<void> _pickAndUploadImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-
-    if (picked == null) return;
-
-    setState(() {
-      _selectedImage = File(picked.path);
-    });
-
-    final uri = Uri.parse('https://app-250518155355.azurewebsites.net/api/upload');
-    final request = http.MultipartRequest('POST', uri);
-
-    final token = await _getToken();
-    request.headers['Authorization'] = 'Bearer $token';
-
-    request.files.add(await http.MultipartFile.fromPath('file', picked.path));
-
-    final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-
-    if (response.statusCode == 200) {
-      final imageUrl = RegExp(r'"imageUrl"\s*:\s*"([^"]+)"').firstMatch(responseBody)?.group(1);
-      setState(() {
-        _uploadedImageUrl = imageUrl;
-        _imageUrlController.text = imageUrl ?? '';
-      });
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al subir imagen')),
-        );
-      }
-    }
-  }
-
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
-  }
-
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.editPost != null;
@@ -172,43 +125,48 @@ class _PostFormScreenState extends State<PostFormScreen> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(  
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Sección de imagen (ahora opcional)
+              // Sección de imagen por URL
               Card(
                 elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      if (_uploadedImageUrl != null)
+                      if (_imageUrlController.text.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              _uploadedImageUrl!,
+                              _imageUrlController.text,
                               height: 150,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => 
+                                Container(
+                                  height: 150,
+                                  color: Colors.grey[200],
+                                  child: const Icon(Icons.broken_image),
+                                ),
                             ),
                           ),
                         ),
-                      ElevatedButton.icon(
-                        onPressed: _pickAndUploadImage,
-                        icon: const Icon(Icons.image),
-                        label: Text(_uploadedImageUrl == null 
-                            ? 'Agregar imagen (opcional)' 
-                            : 'Cambiar imagen'),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
+                      TextFormField(
+                        controller: _imageUrlController,
+                        decoration: const InputDecoration(
+                          labelText: 'URL de la imagen (opcional)',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.link),
                         ),
+                        keyboardType: TextInputType.url,
+                        onChanged: (value) => setState(() {}),
                       ),
-                      if (_uploadedImageUrl != null)
+                      if (_imageUrlController.text.isNotEmpty)
                         TextButton(
                           onPressed: () {
                             setState(() {
-                              _uploadedImageUrl = null;
                               _imageUrlController.text = '';
                             });
                           },
@@ -224,7 +182,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
               
               const SizedBox(height: 20),
               
-              // Resto del formulario (igual que antes)
+              // Resto del formulario
               Card(
                 elevation: 2,
                 child: Padding(

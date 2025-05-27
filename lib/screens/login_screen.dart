@@ -83,12 +83,14 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Logo y título
-                Icon(
-                  Icons.account_circle,
-                  size: 80,
-                  color: theme.primaryColor,
-                ),
-                const SizedBox(height: 24),
+                ClipOval(
+                  child: Image.network(
+                    'https://i.ibb.co/XrJq4C4M/Chat-GPT-Image-27-may-2025-08-19-21-a-m.png', // ← Reemplaza con tu URL directa de ImgBB
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
+                      ),
+                    ),
                 Text(
                   'Bienvenido a UADD',
                   style: TextStyle(
