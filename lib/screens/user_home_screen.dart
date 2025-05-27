@@ -304,31 +304,48 @@
                           ),
                           const SizedBox(height: 12),
                           SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: theme.primaryColor,
-                              inactiveTrackColor:
-                                  theme.primaryColor.withOpacity(0.3),
-                              thumbColor: theme.primaryColor,
-                              overlayColor: theme.primaryColor.withOpacity(0.2),
-                              valueIndicatorColor: theme.primaryColor,
-                              activeTickMarkColor: Colors.white,
-                            ),
-                            child: Slider(
-                              value: _maxPrice,
-                              min: 0,
-                              max: allPosts
-                                  .map((p) => p.price)
-                                  .reduce((a, b) => a > b ? a : b),
-                              divisions: 20,
-                              label: _maxPrice.toStringAsFixed(2),
-                              onChanged: (value) {
-                                setState(() {
-                                  _maxPrice = value;
-                                  _filterPosts();
-                                });
-                              },
-                            ),
-                          ),
+  data: SliderTheme.of(context).copyWith(
+    activeTrackColor: theme.primaryColor,
+    inactiveTrackColor: theme.primaryColor.withOpacity(0.3),
+    thumbColor: theme.primaryColor,
+    overlayColor: theme.primaryColor.withOpacity(0.2),
+    valueIndicatorColor: theme.primaryColor,
+    activeTickMarkColor: Colors.white,
+    inactiveTickMarkColor: Colors.transparent,
+    trackHeight: 3.0, // Altura de la línea del slider (más delgada)
+    thumbShape: const RoundSliderThumbShape(
+      enabledThumbRadius: 8.0, // Tamaño del círculo deslizante
+      disabledThumbRadius: 8.0,
+      elevation: 0,
+      pressedElevation: 0,
+    ),
+    overlayShape: const RoundSliderOverlayShape(
+      overlayRadius: 12.0, // Área de toque alrededor del thumb
+    ),
+    trackShape: const RectangularSliderTrackShape(), // Forma rectangular simple
+    valueIndicatorShape: const PaddleSliderValueIndicatorShape(), // Forma del tooltip
+  ),
+  child: Container(
+    constraints: const BoxConstraints(
+      maxHeight: 24.0, // Limita la altura máxima del contenedor
+    ),
+    child: Slider(
+      value: _maxPrice,
+      min: 0,
+      max: allPosts
+          .map((p) => p.price)
+          .reduce((a, b) => a > b ? a : b),
+      divisions: 20,
+      label: _maxPrice.toStringAsFixed(2),
+      onChanged: (value) {
+        setState(() {
+          _maxPrice = value;
+          _filterPosts();
+        });
+      },
+    ),
+  ),
+),
                         ],
                       ),
                     ),
