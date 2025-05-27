@@ -172,7 +172,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: Column(  
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Sección de imagen (ahora opcional)
