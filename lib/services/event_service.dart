@@ -6,7 +6,7 @@ import '../models/event/event_detail_dto.dart';
 import '../models/event/event_create_dto.dart';
 
 class EventService {
-  final String _baseUrl = 'https://app-250528131912.azurewebsites.net/api/event';
+  final String _baseUrl = 'https://app-250528131912.azurewebsites.net/api/events';
 
   Future<List<EventDto>> getAllEvents() async {
     final response = await http.get(Uri.parse(_baseUrl));

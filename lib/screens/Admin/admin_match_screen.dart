@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:uadd_app/models/Match/match_dto.dart';
-import 'package:uadd_app/screens/Admin/admin_event_screen.dart';
-import 'package:uadd_app/screens/Admin/admin_home_screen.dart';
+import 'package:uadd_app/services/match_service.dart';
 import '../login_screen.dart';
+import '../Match/match_detail_screen.dart';
+import '../Match/match_form_screen.dart';
+import 'admin_home_screen.dart';
+import 'admin_event_screen.dart';
 
 class AdminMatchScreen extends StatefulWidget {
   const AdminMatchScreen({super.key});
@@ -12,10 +15,9 @@ class AdminMatchScreen extends StatefulWidget {
 }
 
 class _AdminMatchScreenState extends State<AdminMatchScreen> {
-  // TODO: Implementar MatchService similar a EventService
-  // final _matchService = MatchService();
-  final _searchController = TextEditingController();
+  final _matchService = MatchService();
   late Future<List<MatchDto>> _futureMatches;
+  final _searchController = TextEditingController();
   List<MatchDto> _filteredMatches = [];
 
   @override
@@ -26,40 +28,11 @@ class _AdminMatchScreenState extends State<AdminMatchScreen> {
 
   void _loadMatches() {
     setState(() {
-      _futureMatches = _fetchMatchesFromApi().then((matches) {
+      _futureMatches = _matchService.getAllMatchs().then((matches) {
         _filteredMatches = matches;
         return matches;
       });
     });
-  }
-
-  // TODO: Reemplazar con llamada real al servicio
-  Future<List<MatchDto>> _fetchMatchesFromApi() async {
-    await Future.delayed(const Duration(seconds: 1)); // Simular carga de red
-    
-    // Datos de ejemplo - en producción esto vendrá de la API
-    return [
-      MatchDto(
-        id: 1,
-        title: 'Partido de Liga',
-        teamA: 'Equipo Local',
-        teamB: 'Equipo Visitante',
-        matchDate: DateTime(2023, 7, 20, 20, 0),
-        location: 'Estadio Municipal',
-        sportType: 'Fútbol',
-        imageUrl: 'https://via.placeholder.com/150',
-      ),
-      MatchDto(
-        id: 2,
-        title: 'Semifinal Torneo',
-        teamA: 'Equipo A',
-        teamB: 'Equipo B',
-        matchDate: DateTime(2023, 8, 5, 18, 30),
-        location: 'Cancha Principal',
-        sportType: 'Baloncesto',
-        imageUrl: 'https://via.placeholder.com/150',
-      ),
-    ];
   }
 
   void _filterMatches(String query) {
@@ -83,44 +56,26 @@ class _AdminMatchScreenState extends State<AdminMatchScreen> {
   }
 
   void _goToCreate() async {
-    // TODO: Implementar navegación a formulario de creación real
-    final result = await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Funcionalidad en desarrollo'),
-        content: const Text('La creación de partidos estará disponible pronto.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'OK'),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MatchFormScreen()),
     );
-    
-    if (result == 'OK') {
-      _showSnackBar('Funcionalidad de creación en desarrollo');
+    if (!mounted) return;
+    if (result is String) {
+      _showSnackBar(result);
+      _loadMatches();
     }
   }
 
   void _goToEdit(MatchDto match) async {
-    // TODO: Implementar navegación a formulario de edición real
-    final result = await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Editar ${match.teamA} vs ${match.teamB}'),
-        content: const Text('La edición de partidos estará disponible pronto.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'OK'),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => MatchFormScreen(editMatch: match)),
     );
-    
-    if (result == 'OK') {
-      _showSnackBar('Editando partido: ${match.teamA} vs ${match.teamB}');
+    if (!mounted) return;
+    if (result is String) {
+      _showSnackBar(result);
+      _loadMatches();
     }
   }
 
@@ -159,9 +114,15 @@ class _AdminMatchScreenState extends State<AdminMatchScreen> {
     );
 
     if (confirm == true) {
-      // TODO: Implementar eliminación real contra la API
-      _showSnackBar('Partido eliminado (simulado)');
-      _loadMatches(); // Recargar datos desde la API
+      final success = await _matchService.deleteMatch(id);
+      if (!mounted) return;
+      
+      if (success) {
+        _showSnackBar('Partido eliminado');
+        _loadMatches();
+      } else {
+        _showSnackBar('Error al eliminar partido');
+      }
     }
   }
 
@@ -233,7 +194,7 @@ class _AdminMatchScreenState extends State<AdminMatchScreen> {
               leading: const Icon(Icons.sports_soccer),
               title: const Text('Partidos'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(context); // Ya estamos en esta pantalla
               },
             ),
             const Divider(),
@@ -343,8 +304,12 @@ class _AdminMatchScreenState extends State<AdminMatchScreen> {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(10),
                         onTap: () {
-                          // TODO: Implementar vista detalle del partido
-                          _showSnackBar('Vista detalle de ${match.title}');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MatchDetailScreen(matchId: match.id),
+                            ),
+                          );
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(12),

@@ -6,7 +6,7 @@ import 'package:uadd_app/models/Match/match_dto.dart';
 import '../models/match/match_create_dto.dart';
 
 class MatchService {
-  final String _baseUrl = 'https://app-250528131912.azurewebsites.net/api/newspost';
+  final String _baseUrl = 'https://app-250528131912.azurewebsites.net/api/matches';
 
   Future<List<MatchDto>> getAllMatchs() async {
     final response = await http.get(Uri.parse(_baseUrl));

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:uadd_app/models/Event/event_dto.dart';
 import '../../models/event/event_detail_dto.dart';
 import '../../services/event_service.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final int eventId;
 
-  const EventDetailScreen({super.key, required this.eventId});
+  const EventDetailScreen({super.key, required this.eventId, required EventDto event});
 
   @override
   State<EventDetailScreen> createState() => _EventDetailScreenState();

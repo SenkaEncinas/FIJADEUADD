@@ -305,7 +305,7 @@ class _AdminEventScreenState extends State<AdminEventScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => EventDetailScreen(eventId: event.id),
+                              builder: (_) => EventDetailScreen(eventId: event.id, event: event),
                             ),
                           );
                         },

@@ -1,405 +1,367 @@
-  import 'package:flutter/material.dart';
-  import 'package:uadd_app/models/Event/event_dto.dart';
-  import 'package:uadd_app/screens/User/user_home_screen.dart';
-  import '../../services/event_service.dart';
-  import '../login_screen.dart';
-  import 'user_match_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:uadd_app/models/Event/event_dto.dart';
+import 'package:uadd_app/screens/Event/event_detail_screen.dart';
+import 'package:uadd_app/screens/User/user_home_screen.dart';
+import '../../services/event_service.dart';
+import '../login_screen.dart';
+import 'user_match_screen.dart'; // Nueva importación
 
-  class UserEventScreen extends StatefulWidget {
-    const UserEventScreen({super.key});
+class UserEventScreen extends StatefulWidget {
+  const UserEventScreen({super.key});
 
-    @override
-    State<UserEventScreen> createState() => _UserEventScreenState();
+  @override
+  State<UserEventScreen> createState() => _UserEventScreenState();
+}
+
+class _UserEventScreenState extends State<UserEventScreen> {
+  final _eventService = EventService();
+  late Future<List<EventDto>> _futureEvents;
+  List<EventDto> _filteredEvents = [];
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedLocation = 'Todas';
+  final List<String> _locations = [
+    'Todas',
+    'Santiago',
+    'Valparaíso',
+    'Concepción',
+    'La Serena',
+    'Antofagasta',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _futureEvents = _loadEvents();
+    _searchController.addListener(_filterEvents);
   }
 
-  class _UserEventScreenState extends State<UserEventScreen> {
-    final _eventService = EventService();
-    late Future<List<EventDto>> _futureEvents = _eventService.getAllEvents();
-    List<EventDto> _filteredEvents = [];
-    final TextEditingController _searchController = TextEditingController();
-    String _selectedLocation = 'Todas';
-    final List<String> _locations = [
-      'Todas',
-      'Santiago',
-      'Valparaíso',
-      'Concepción',
-      'La Serena',
-      'Antofagasta',
-    ];
-
-    @override
-    void initState() {
-      super.initState();
-      _refreshEvents();
-      _searchController.addListener(_filterEvents);
+  Future<List<EventDto>> _loadEvents() async {
+    try {
+      final events = await _eventService.getAllEvents();
+      _filteredEvents = events;
+      return events;
+    } catch (e) {
+      debugPrint('Error loading events: $e');
+      _filteredEvents = [];
+      return [];
     }
+  }
 
-    @override
-    void dispose() {
-      _searchController.dispose();
-      super.dispose();
-    }
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
-    Future<void> _refreshEvents() async {
-      try {
-        setState(() {
-          _futureEvents = _eventService.getAllEvents().then((events) {
-            _filteredEvents = events ?? [];
-            return events ?? [];
-          });
-        });
-      } catch (e) {
-        setState(() {
-          _filteredEvents = [];
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cargar eventos: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+  Future<void> _refreshEvents() async {
+    setState(() {
+      _futureEvents = _loadEvents();
+    });
+  }
 
-    void _logout() {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-    }
+  void _logout() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
 
-    void _filterEvents() {
-      if (_futureEvents == null) return;
-
-      _futureEvents.then((events) {
-        if (events == null) return;
-        
-        setState(() {
-          _filteredEvents = events.where((event) {
-            final matchesSearch = _searchController.text.isEmpty || 
-                (event.title?.toLowerCase().contains(_searchController.text.toLowerCase()) ?? false);
-            final matchesLocation = _selectedLocation == 'Todas' || 
-                (event.location == _selectedLocation);
-            return matchesSearch && matchesLocation;
-          }).toList();
-        });
-      }).catchError((e) {
-        setState(() {
-          _filteredEvents = [];
-        });
+  void _filterEvents() {
+    _futureEvents.then((events) {
+      if (events.isEmpty) return;
+      
+      setState(() {
+        _filteredEvents = events.where((event) {
+          final matchesSearch = _searchController.text.isEmpty || 
+              (event.title?.toLowerCase().contains(_searchController.text.toLowerCase()) ?? false);
+          final matchesLocation = _selectedLocation == 'Todas' || 
+              (event.location == _selectedLocation);
+          return matchesSearch && matchesLocation;
+        }).toList();
       });
-    }
+    });
+  }
 
-    @override
-    Widget build(BuildContext context) {
-      final theme = Theme.of(context).copyWith(
-        primaryColor: const Color(0xFF2E7D32),
-        colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: const Color(0xFF2E7D32),
-              secondary: const Color(0xFF81C784),
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context).copyWith(
+      primaryColor: const Color(0xFF2E7D32),
+      colorScheme: Theme.of(context).colorScheme.copyWith(
+            primary: const Color(0xFF2E7D32),
+            secondary: const Color(0xFF81C784),
+          ),
+    );
+
+    return Theme(
+      data: theme,
+      child: Scaffold(
+        drawer: _buildDrawer(theme),
+        appBar: _buildAppBar(theme),
+        body: _buildBody(theme),
+      ),
+    );
+  }
+
+  Widget _buildDrawer(ThemeData theme) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: theme.primaryColor,
             ),
-      );
-
-      return Theme(
-        data: theme,
-        child: Scaffold(
-          drawer: _buildDrawer(theme),
-          appBar: _buildAppBar(theme),
-          body: _buildBody(theme),
-        ),
-      );
-    }
-
-    Widget _buildDrawer(ThemeData theme) {
-      return Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: theme.primaryColor,
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    'Menú de Navegación',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  'Menú de Navegación',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Selecciona una opción',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text(
-                'FUNCIONALIDADES',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: Colors.grey,
                 ),
+                SizedBox(height: 8),
+                Text(
+                  'Selecciona una opción',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Text(
+              'FUNCIONALIDADES',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Colors.grey,
               ),
             ),
-            ListTile(
-              leading: Icon(Icons.paid, color: theme.primaryColor),
-              title: const Text('ventas'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UserHomeScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.people, color: theme.primaryColor),
-              title: const Text('Matches'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UserMatchScreen()),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: Icon(Icons.logout, color: theme.primaryColor),
-              title: const Text('Cerrar Sesión'),
-              onTap: _logout,
-            ),
-          ],
-        ),
-      );
-    }
-
-    PreferredSizeWidget _buildAppBar(ThemeData theme) {
-      return AppBar(
-        title: const Text('Eventos',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 20)),
-        centerTitle: true,
-        backgroundColor: theme.primaryColor,
-        elevation: 5,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(15),
           ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _refreshEvents,
-            tooltip: 'Actualizar',
+          ListTile(
+            leading: Icon(Icons.paid, color: theme.primaryColor),
+            title: const Text('ventas'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const UserHomeScreen()),
+              );
+            },
           ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: _logout,
-            tooltip: 'Cerrar sesión',
+          ListTile(
+            leading: Icon(Icons.people, color: theme.primaryColor),
+            title: const Text('Matches'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const UserMatchScreen()),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: Icon(Icons.logout, color: theme.primaryColor),
+            title: const Text('Cerrar Sesión'),
+            onTap: _logout,
           ),
         ],
-      );
-    }
+      ),
+    );
+  }
 
-    Widget _buildBody(ThemeData theme) {
-      return RefreshIndicator(
-        onRefresh: _refreshEvents,
-        color: theme.primaryColor,
-        child: FutureBuilder<List<EventDto>>(
-          future: _futureEvents,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
-                ),
-              );
-            }
+  PreferredSizeWidget _buildAppBar(ThemeData theme) {
+    return AppBar(
+      title: const Text('Eventos',
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 20)),
+      centerTitle: true,
+      backgroundColor: theme.primaryColor,
+      elevation: 5,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(15),
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh, color: Colors.white),
+          onPressed: _refreshEvents,
+          tooltip: 'Actualizar',
+        ),
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.white),
+          onPressed: _logout,
+          tooltip: 'Cerrar sesión',
+        ),
+      ],
+    );
+  }
 
-            if (snapshot.hasError) {
-              return _buildErrorWidget(theme);
-            }
-
-            if (!snapshot.hasData || snapshot.data == null) {
-              return _buildNoDataWidget(theme);
-            }
-
-            return Column(
-              children: [
-                _buildSearchFilters(theme),
-                _buildEventsList(theme, snapshot.data!),
-              ],
+  Widget _buildBody(ThemeData theme) {
+    return RefreshIndicator(
+      onRefresh: _refreshEvents,
+      color: theme.primaryColor,
+      child: FutureBuilder<List<EventDto>>(
+        future: _futureEvents,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
+              ),
             );
-          },
-        ),
-      );
-    }
+          }
 
-    Widget _buildErrorWidget(ThemeData theme) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: theme.primaryColor),
-            const SizedBox(height: 16),
-            Text('Error al cargar eventos',
-                style: TextStyle(fontSize: 16, color: theme.primaryColor)),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+          if (snapshot.hasError) {
+            return _buildErrorWidget(theme);
+          }
+
+          return Column(
+            children: [
+              _buildSearchFilters(theme),
+              _buildEventsList(theme),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 48, color: theme.primaryColor),
+          const SizedBox(height: 16),
+          Text('Error al cargar eventos',
+              style: TextStyle(fontSize: 16, color: theme.primaryColor)),
+          const SizedBox(height: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              onPressed: _refreshEvents,
-              child: const Text('Reintentar',
-                  style: TextStyle(color: Colors.white)),
             ),
-          ],
-        ),
-      );
-    }
-
-    Widget _buildNoDataWidget(ThemeData theme) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.info_outline, size: 48, color: theme.primaryColor),
-            const SizedBox(height: 16),
-            Text('No hay eventos disponibles',
-                style: TextStyle(fontSize: 16, color: theme.primaryColor)),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: _refreshEvents,
-              child: const Text('Actualizar',
-                  style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      );
-    }
-
-    Widget _buildSearchFilters(ThemeData theme) {
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            )
-          ],
-          border: Border.all(
-            color: theme.primaryColor.withOpacity(0.2),
-            width: 1,
+            onPressed: _refreshEvents,
+            child: const Text('Reintentar',
+                style: TextStyle(color: Colors.white)),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchFilters(ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          )
+        ],
+        border: Border.all(
+          color: theme.primaryColor.withOpacity(0.2),
+          width: 1,
         ),
-        child: Column(
-          children: [
-            SizedBox(
-              height: 30,
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  hintText: 'Buscar eventos...',
-                  prefixIcon: Icon(Icons.search, size: 20, color: theme.primaryColor),
-                  filled: true,
-                  fillColor: Colors.grey[50],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: theme.primaryColor, width: 1),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: theme.primaryColor, width: 1),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: theme.primaryColor, width: 1.5),
-                  ),
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 30,
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                hintText: 'Buscar eventos...',
+                prefixIcon: Icon(Icons.search, size: 20, color: theme.primaryColor),
+                filled: true,
+                fillColor: Colors.grey[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: theme.primaryColor, width: 1),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: theme.primaryColor, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: theme.primaryColor, width: 1.5),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 30,
-              child: DropdownButtonFormField<String>(
-                isDense: true,
-                value: _selectedLocation,
-                dropdownColor: Colors.white,
-                icon: Icon(Icons.arrow_drop_down, size: 20, color: theme.primaryColor),
-                items: _locations.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value, 
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: theme.primaryColor
-                      ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 30,
+            child: DropdownButtonFormField<String>(
+              isDense: true,
+              value: _selectedLocation,
+              dropdownColor: Colors.white,
+              icon: Icon(Icons.arrow_drop_down, size: 20, color: theme.primaryColor),
+              items: _locations.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value, 
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.primaryColor
                     ),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedLocation = newValue!;
-                    _filterEvents();
-                  });
-                },
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                  labelText: 'Ubicación',
-                  labelStyle: TextStyle(
-                    fontSize: 12,
-                    color: theme.primaryColor
                   ),
-                  filled: true,
-                  fillColor: Colors.grey[50],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: theme.primaryColor, width: 1),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: theme.primaryColor, width: 1),
-                  ),
+                );
+              }).toList(),
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedLocation = newValue!;
+                  _filterEvents();
+                });
+              },
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                labelText: 'Ubicación',
+                labelStyle: TextStyle(
+                  fontSize: 12,
+                  color: theme.primaryColor
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: theme.primaryColor, width: 1),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: theme.primaryColor, width: 1),
                 ),
               ),
             ),
+          ),
           ],
         ),
       );
     }
 
-    Widget _buildEventsList(ThemeData theme, List<EventDto> events) {
+    Widget _buildEventsList(ThemeData theme) {
       return Expanded(
         child: _filteredEvents.isEmpty
             ? _buildNoResultsWidget(theme)
@@ -468,7 +430,12 @@
         child: InkWell(
           borderRadius: BorderRadius.circular(15),
           onTap: () {
-            // Navegar a pantalla de detalle si es necesario
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EventDetailScreen(event: event, eventId: event.id,),
+              ),
+            );
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
