@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/news_post/news_post_dto.dart';
-import '../services/post_service.dart';
-import 'login_screen.dart';
-import 'post_detail_screen.dart';
-import 'post_form_screen.dart';
+import '../../models/news_post/news_post_dto.dart';
+import '../../services/post_service.dart';
+import '../login_screen.dart';
+import '../Post/post_detail_screen.dart';
+import '../Post/post_form_screen.dart';
+import 'admin_event_screen.dart'; // Asegúrate de importar las nuevas pantallas
+import 'admin_match_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -133,19 +135,84 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: theme.primaryColor,
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'Panel de Administración',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Menú de navegación',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.newspaper),
+              title: const Text('Noticias'),
+              onTap: () {
+                Navigator.pop(context); // Cierra el drawer
+                // Ya estamos en esta pantalla, no necesitamos navegar
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.event),
+              title: const Text('Eventos'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminEventScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.sports_soccer),
+              title: const Text('Partidos'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminMatchScreen()),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Cerrar sesión', style: TextStyle(color: Colors.red)),
+              onTap: _logout,
+            ),
+          ],
+        ),
+      ),
       appBar: AppBar(
-        title: const Text('Panel de Administración'),
+        title: const Text('Noticias - Administración'),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _goToCreate,
             tooltip: 'Crear nueva publicación',
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-            tooltip: 'Cerrar sesión',
           ),
         ],
       ),

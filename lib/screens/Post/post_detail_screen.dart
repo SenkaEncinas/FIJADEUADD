@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/news_post/news_post_detail_dto.dart';
-import '../services/post_service.dart';
+import '../../models/news_post/news_post_detail_dto.dart';
+import '../../services/post_service.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final int postId;

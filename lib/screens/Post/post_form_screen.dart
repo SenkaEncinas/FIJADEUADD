@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/news_post/news_post_create_dto.dart';
-import '../models/news_post/news_post_dto.dart';
-import '../services/post_service.dart';
+import '../../models/news_post/news_post_create_dto.dart';
+import '../../models/news_post/news_post_dto.dart';
+import '../../services/post_service.dart';
 
 class PostFormScreen extends StatefulWidget {
   final NewsPostDto? editPost;
