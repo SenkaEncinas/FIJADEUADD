@@ -151,8 +151,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.people, color: theme.primaryColor),
-                title: const Text('Matches'),
+                leading: Icon(Icons.sports, color: theme.primaryColor),
+                title: const Text('Matchs'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -161,6 +161,18 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   );
                 },
               ),
+              ListTile(
+                leading: Icon(Icons.paid, color: theme.primaryColor),
+                title: const Text('Ventas'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const UserHomeScreen()),
+                  );
+                },
+              ),
+              
               const Divider(),
               // Opción de cerrar sesión
               ListTile(

@@ -16,19 +16,32 @@ class _EventFormScreenState extends State<EventFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _eventService = EventService();
   final _titleController = TextEditingController();
-  final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _imageUrlController = TextEditingController();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _isLoading = false;
+  
+  final List<String> _locations = [
+    'Todas',
+    'Coliseo',
+    'Cancha',
+    'Aula Magna',
+    'Centro De Convenciones',
+    'Pascanita',
+    'Jatata',
+    'Cafeteria',
+    'Sala de estudio',
+    'Sala de mate',
+  ];
+  String? _selectedLocation;
 
   @override
   void initState() {
     super.initState();
     if (widget.editEvent != null) {
       _titleController.text = widget.editEvent!.title;
-      _locationController.text = widget.editEvent!.location;
+      _selectedLocation = widget.editEvent!.location;
       _selectedDate = widget.editEvent!.date;
       _selectedTime = TimeOfDay.fromDateTime(widget.editEvent!.date);
       _imageUrlController.text = widget.editEvent!.imageUrl ?? '';
@@ -38,7 +51,6 @@ class _EventFormScreenState extends State<EventFormScreen> {
   @override
   void dispose() {
     _titleController.dispose();
-    _locationController.dispose();
     _descriptionController.dispose();
     _imageUrlController.dispose();
     super.dispose();
@@ -68,9 +80,9 @@ class _EventFormScreenState extends State<EventFormScreen> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedDate == null || _selectedTime == null) {
+    if (_selectedDate == null || _selectedTime == null || _selectedLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select date and time')),
+        const SnackBar(content: Text('Please select date, time and location')),
       );
       return;
     }
@@ -91,7 +103,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
         final updatedEvent = EventCreateDto(
           title: _titleController.text,
           date: dateTime,
-          location: _locationController.text,
+          location: _selectedLocation!,
           description: _descriptionController.text,
           imageUrl: _imageUrlController.text,
         );
@@ -101,10 +113,9 @@ class _EventFormScreenState extends State<EventFormScreen> {
         final newEvent = EventCreateDto(
           title: _titleController.text,
           date: dateTime,
-          location: _locationController.text,
+          location: _selectedLocation!,
           description: _descriptionController.text,
           imageUrl: _imageUrlController.text,
-              
         );
         await _eventService.createEvent(newEvent);
       }
@@ -204,16 +215,27 @@ class _EventFormScreenState extends State<EventFormScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Location Field
-                    TextFormField(
-                      controller: _locationController,
+                    // Location Dropdown
+                    DropdownButtonFormField<String>(
+                      value: _selectedLocation,
                       decoration: const InputDecoration(
                         labelText: 'Ubicación',
                         border: OutlineInputBorder(),
                       ),
+                      items: _locations.map((String location) {
+                        return DropdownMenuItem<String>(
+                          value: location,
+                          child: Text(location),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedLocation = newValue;
+                        });
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa una ubicación';
+                          return 'Por favor selecciona una ubicación';
                         }
                         return null;
                       },

@@ -14,9 +14,9 @@ class AdminMatchScreen extends StatefulWidget {
 }
 
 class _AdminMatchScreenState extends State<AdminMatchScreen> {
-  final _matchService = MatchService();
+  final MatchService _matchService = MatchService();
   late Future<List<MatchDto>> _futureMatches;
-  final _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   List<MatchDto> _filteredMatches = [];
 
   @override
@@ -57,24 +57,35 @@ class _AdminMatchScreenState extends State<AdminMatchScreen> {
   void _goToCreate() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const MatchFormScreen()),
+      MaterialPageRoute(
+        builder: (_) => MatchFormScreen(
+          matchService: _matchService,
+        ),
+      ),
     );
+    
     if (!mounted) return;
-    if (result is String) {
-      _showSnackBar(result);
+    if (result == true) {
       _loadMatches();
+      _showSnackBar('Partido creado correctamente');
     }
   }
 
   void _goToEdit(MatchDto match) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => MatchFormScreen(editMatch: match)),
+      MaterialPageRoute(
+        builder: (_) => MatchFormScreen(
+          matchService: _matchService,
+          editMatch: match,
+        ),
+      ),
     );
+    
     if (!mounted) return;
-    if (result is String) {
-      _showSnackBar(result);
+    if (result == true) {
       _loadMatches();
+      _showSnackBar('Partido actualizado correctamente');
     }
   }
 
@@ -193,7 +204,7 @@ class _AdminMatchScreenState extends State<AdminMatchScreen> {
               leading: const Icon(Icons.sports_soccer),
               title: const Text('Partidos'),
               onTap: () {
-                Navigator.pop(context); // Ya estamos en esta pantalla
+                Navigator.pop(context);
               },
             ),
             const Divider(),

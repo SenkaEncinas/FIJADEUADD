@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uadd_app/models/Match/match_dto.dart';
 import 'package:uadd_app/screens/Match/Match_detail_screen.dart';
+import 'package:uadd_app/screens/User/user_event_screen.dart';
 import 'package:uadd_app/screens/User/user_home_screen.dart';
 import '../../services/match_service.dart';
 import '../login_screen.dart';
@@ -21,11 +22,9 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
   String _selectedSport = 'Todos';
   final List<String> _locations = [
     'Todas',
-    'Santiago',
-    'Valparaíso',
-    'Concepción',
-    'La Serena',
-    'Antofagasta',
+    'Coliseo',
+    'Cancha',
+    'Ping Pong',
   ];
   
   final List<String> _sports = [
@@ -157,27 +156,38 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
             ),
           ),
           ListTile(
-            leading: Icon(Icons.paid, color: theme.primaryColor),
-            title: const Text('Ventas'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const UserHomeScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.people, color: theme.primaryColor),
-            title: const Text('Matches'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const UserMatchScreen()),
-              );
-            },
-          ),
+                leading: Icon(Icons.event, color: theme.primaryColor),
+                title: const Text('Eventos'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const UserEventScreen()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.sports, color: theme.primaryColor),
+                title: const Text('Matchs'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const UserMatchScreen()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.paid, color: theme.primaryColor),
+                title: const Text('Ventas'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const UserHomeScreen()),
+                  );
+                },
+              ),
           const Divider(),
           ListTile(
             leading: Icon(Icons.logout, color: theme.primaryColor),

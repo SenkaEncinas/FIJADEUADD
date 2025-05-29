@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:uadd_app/models/Match/match_dto.dart';
+import 'package:uadd_app/services/match_service.dart';
 
 class MatchFormScreen extends StatefulWidget {
   final MatchDto? editMatch;
-
-  const MatchFormScreen({super.key, this.editMatch});
+  final MatchService matchService;
+  
+  const MatchFormScreen({super.key, this.editMatch, required this.matchService});
 
   @override
   State<MatchFormScreen> createState() => _MatchFormScreenState();
