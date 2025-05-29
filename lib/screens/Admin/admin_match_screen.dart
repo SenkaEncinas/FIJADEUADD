@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:uadd_app/models/Match/match_dto.dart';
+import 'package:uadd_app/screens/Admin/admin_event_screen.dart';
+import 'package:uadd_app/screens/Admin/admin_home_screen.dart';
+import 'package:uadd_app/screens/Match/match_form_screen.dart';
 import 'package:uadd_app/services/match_service.dart';
 import '../login_screen.dart';
-import '../Match/match_detail_screen.dart';
-import '../Match/match_form_screen.dart';
-import 'admin_home_screen.dart';
-import 'admin_event_screen.dart';
 
 class AdminMatchScreen extends StatefulWidget {
   const AdminMatchScreen({super.key});
@@ -303,14 +302,7 @@ class _AdminMatchScreenState extends State<AdminMatchScreen> {
                       ),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(10),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => MatchDetailScreen(matchId: match.id),
-                            ),
-                          );
-                        },
+                        onTap: () => _goToEdit(match),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Row(

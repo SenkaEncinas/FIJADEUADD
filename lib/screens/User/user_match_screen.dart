@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:uadd_app/models/Match/match_dto.dart';
+import 'package:uadd_app/screens/Match/Match_detail_screen.dart';
 import 'package:uadd_app/screens/User/user_home_screen.dart';
 import '../../services/match_service.dart';
 import '../login_screen.dart';
-import 'user_event_screen.dart';
 
 class UserMatchScreen extends StatefulWidget {
   const UserMatchScreen({super.key});
@@ -17,14 +17,24 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
   late Future<List<MatchDto>> _futureMatches;
   List<MatchDto> _filteredMatches = [];
   final TextEditingController _searchController = TextEditingController();
+  String _selectedLocation = 'Todas';
   String _selectedSport = 'Todos';
+  final List<String> _locations = [
+    'Todas',
+    'Santiago',
+    'Valparaíso',
+    'Concepción',
+    'La Serena',
+    'Antofagasta',
+  ];
+  
   final List<String> _sports = [
     'Todos',
     'Fútbol',
-    'Baloncesto',
+    'Básquetbol',
     'Tenis',
-    'Voleibol',
-    'Béisbol',
+    'Vóleibol',
+    'Rugby',
   ];
 
   @override
@@ -40,7 +50,7 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
       _filteredMatches = matches;
       return matches;
     } catch (e) {
-      debugPrint('Error loading matches: $e'); 
+      debugPrint('Error loading matches: $e');
       _filteredMatches = [];
       return [];
     }
@@ -72,12 +82,12 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
       setState(() {
         _filteredMatches = matches.where((match) {
           final matchesSearch = _searchController.text.isEmpty || 
-              match.title.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-              match.teamA.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-              match.teamB.toLowerCase().contains(_searchController.text.toLowerCase());
-          final matchesSport = _selectedSport == 'Todos' || 
+              (match.title.toLowerCase().contains(_searchController.text.toLowerCase()));
+          final matchesLocation = _selectedLocation == 'Todas' || 
+              (match.location == _selectedLocation);
+          final matchesSport = _selectedSport == 'Todos' ||
               (match.sportType == _selectedSport);
-          return matchesSearch && matchesSport;
+          return matchesSearch && matchesLocation && matchesSport;
         }).toList();
       });
     });
@@ -158,21 +168,14 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.event, color: theme.primaryColor),
-            title: const Text('Eventos'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const UserEventScreen()),
-              );
-            },
-          ),
-          ListTile(
             leading: Icon(Icons.people, color: theme.primaryColor),
             title: const Text('Matches'),
             onTap: () {
               Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const UserMatchScreen()),
+              );
             },
           ),
           const Divider(),
@@ -320,49 +323,102 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          SizedBox(
-            height: 30,
-            child: DropdownButtonFormField<String>(
-              isDense: true,
-              value: _selectedSport,
-              dropdownColor: Colors.white,
-              icon: Icon(Icons.arrow_drop_down, size: 20, color: theme.primaryColor),
-              items: _sports.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value, 
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: theme.primaryColor
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 30,
+                  child: DropdownButtonFormField<String>(
+                    isDense: true,
+                    value: _selectedLocation,
+                    dropdownColor: Colors.white,
+                    icon: Icon(Icons.arrow_drop_down, size: 20, color: theme.primaryColor),
+                    items: _locations.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value, 
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.primaryColor
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedLocation = newValue!;
+                        _filterMatches();
+                      });
+                    },
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                      labelText: 'Ubicación',
+                      labelStyle: TextStyle(
+                        fontSize: 12,
+                        color: theme.primaryColor
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: theme.primaryColor, width: 1),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: theme.primaryColor, width: 1),
+                      ),
                     ),
                   ),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedSport = newValue!;
-                  _filterMatches();
-                });
-              },
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                labelText: 'Deporte',
-                labelStyle: TextStyle(
-                  fontSize: 12,
-                  color: theme.primaryColor
-                ),
-                filled: true,
-                fillColor: Colors.grey[50],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: theme.primaryColor, width: 1),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: theme.primaryColor, width: 1),
                 ),
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SizedBox(
+                  height: 30,
+                  child: DropdownButtonFormField<String>(
+                    isDense: true,
+                    value: _selectedSport,
+                    dropdownColor: Colors.white,
+                    icon: Icon(Icons.arrow_drop_down, size: 20, color: theme.primaryColor),
+                    items: _sports.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value, 
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.primaryColor
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedSport = newValue!;
+                        _filterMatches();
+                      });
+                    },
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                      labelText: 'Deporte',
+                      labelStyle: TextStyle(
+                        fontSize: 12,
+                        color: theme.primaryColor
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: theme.primaryColor, width: 1),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: theme.primaryColor, width: 1),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -404,6 +460,7 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
             onPressed: () {
               setState(() {
                 _searchController.clear();
+                _selectedLocation = 'Todas';
                 _selectedSport = 'Todos';
                 _filterMatches();
               });
@@ -438,7 +495,12 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () {
-          // Navegar a pantalla de detalle del partido
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MatchDetailScreen(match: match, matchId: match.id),
+            ),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -450,6 +512,7 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
                 children: [
                   _buildMatchImage(theme, match),
                   _buildMatchDateBadge(match),
+                  _buildSportBadge(match),
                 ],
               ),
             ),
@@ -481,11 +544,8 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
         height: 200,
         color: Colors.grey[200],
         child: Center(
-          child: Icon(
-            _getSportIcon(match.sportType),
-            size: 50,
-            color: theme.primaryColor,
-          ),
+          child: Icon(Icons.broken_image,
+              size: 50, color: theme.primaryColor),
         ),
       ),
     );
@@ -512,6 +572,27 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
     );
   }
 
+  Widget _buildSportBadge(MatchDto match) {
+    return Positioned(
+      top: 10,
+      right: 10,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          match.sportType,
+          style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMatchDetails(ThemeData theme, MatchDto match) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -528,9 +609,7 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 12),
-          
-          // Equipos enfrentados
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -543,29 +622,7 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Chip(
-                    label: const Text('Local'),
-                    backgroundColor: theme.primaryColor.withOpacity(0.1),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.errorContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: const Text(
-                  'VS',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Column(
-                children: [
+                  const Text("VS", style: TextStyle(fontWeight: FontWeight.bold)),
                   Text(
                     match.teamB,
                     style: const TextStyle(
@@ -573,17 +630,11 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Chip(
-                    label: Text('Visitante'),
-                  ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          
-          // Detalles adicionales
+          const SizedBox(height: 16),
           Row(
             children: [
               Icon(Icons.location_on,
@@ -597,21 +648,6 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
                 ),
               ),
               const Spacer(),
-              Icon(Icons.sports,
-                  size: 16, color: theme.primaryColor),
-              const SizedBox(width: 4),
-              Text(
-                match.sportType,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
               Icon(Icons.access_time,
                   size: 16, color: theme.primaryColor),
               const SizedBox(width: 4),
@@ -627,22 +663,5 @@ class _UserMatchScreenState extends State<UserMatchScreen> {
         ],
       ),
     );
-  }
-
-  IconData _getSportIcon(String sportType) {
-    switch (sportType.toLowerCase()) {
-      case 'fútbol':
-      case 'futbol':
-        return Icons.sports_soccer;
-      case 'baloncesto':
-      case 'básquetbol':
-        return Icons.sports_basketball;
-      case 'tenis':
-        return Icons.sports_tennis;
-      case 'voleibol':
-        return Icons.sports_volleyball;
-      default:
-        return Icons.sports;
-    }
   }
 }

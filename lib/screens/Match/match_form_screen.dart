@@ -16,10 +16,19 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
   late TextEditingController _teamAController;
   late TextEditingController _teamBController;
   late TextEditingController _locationController;
-  late TextEditingController _sportTypeController;
   late TextEditingController _imageUrlController;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
+  String _selectedSportType = 'Fútbol';
+
+  // Lista de tipos de deporte disponibles
+  static const List<String> sportTypes = [
+    'Fútbol',
+    'Baloncesto',
+    'Tenis',
+    'Voleibol',
+    'Béisbol'
+  ];
 
   @override
   void initState() {
@@ -29,8 +38,12 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
     _teamAController = TextEditingController(text: match?.teamA ?? '');
     _teamBController = TextEditingController(text: match?.teamB ?? '');
     _locationController = TextEditingController(text: match?.location ?? '');
-    _sportTypeController = TextEditingController(text: match?.sportType ?? 'Fútbol');
     _imageUrlController = TextEditingController(text: match?.imageUrl ?? '');
+
+    // Inicializar el tipo de deporte
+    if (match != null && match.sportType.isNotEmpty) {
+      _selectedSportType = match.sportType;
+    }
 
     if (match != null) {
       _selectedDate = match.matchDate;
@@ -44,7 +57,6 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
     _teamAController.dispose();
     _teamBController.dispose();
     _locationController.dispose();
-    _sportTypeController.dispose();
     _imageUrlController.dispose();
     super.dispose();
   }
@@ -93,13 +105,13 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final match = MatchDto(
-        id: widget.editMatch?.id ?? 0, // El ID se asignará al guardar
+        id: widget.editMatch?.id ?? 0,
         title: _titleController.text,
         teamA: _teamAController.text,
         teamB: _teamBController.text,
         matchDate: _selectedDate,
         location: _locationController.text,
-        sportType: _sportTypeController.text,
+        sportType: _selectedSportType,
         imageUrl: _imageUrlController.text,
       );
 
@@ -137,6 +149,7 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Título del partido',
                   prefixIcon: Icon(Icons.title),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -156,6 +169,7 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Equipo Local',
                         prefixIcon: Icon(Icons.people),
+                        border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -172,6 +186,7 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Equipo Visitante',
                         prefixIcon: Icon(Icons.people_outline),
+                        border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -195,9 +210,11 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Fecha',
                           prefixIcon: Icon(Icons.calendar_today),
+                          border: OutlineInputBorder(),
                         ),
                         child: Text(
                           '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ),
                     ),
@@ -210,9 +227,11 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Hora',
                           prefixIcon: Icon(Icons.access_time),
+                          border: OutlineInputBorder(),
                         ),
                         child: Text(
                           '${_selectedTime.hour}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ),
                     ),
@@ -227,6 +246,7 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Ubicación',
                   prefixIcon: Icon(Icons.location_on),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -239,22 +259,24 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
 
               // Campo: Tipo de Deporte
               DropdownButtonFormField<String>(
-                value: _sportTypeController.text,
+                value: _selectedSportType,
                 decoration: const InputDecoration(
                   labelText: 'Tipo de Deporte',
                   prefixIcon: Icon(Icons.sports),
+                  border: OutlineInputBorder(),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'Fútbol', child: Text('Fútbol')),
-                  DropdownMenuItem(value: 'Baloncesto', child: Text('Baloncesto')),
-                  DropdownMenuItem(value: 'Tenis', child: Text('Tenis')),
-                  DropdownMenuItem(value: 'Voleibol', child: Text('Voleibol')),
-                  DropdownMenuItem(value: 'Béisbol', child: Text('Béisbol')),
-                ],
+                items: sportTypes.map((type) {
+                  return DropdownMenuItem<String>(
+                    value: type,
+                    child: Text(type),
+                  );
+                }).toList(),
                 onChanged: (value) {
-                  setState(() {
-                    _sportTypeController.text = value!;
-                  });
+                  if (value != null) {
+                    setState(() {
+                      _selectedSportType = value;
+                    });
+                  }
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -269,15 +291,18 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
               TextFormField(
                 controller: _imageUrlController,
                 decoration: const InputDecoration(
-                  labelText: 'URL de la imagen',
+                  labelText: 'URL de la imagen (opcional)',
                   prefixIcon: Icon(Icons.image),
+                  border: OutlineInputBorder(),
+                  hintText: 'https://ejemplo.com/imagen.jpg',
                 ),
+                keyboardType: TextInputType.url,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa una URL de imagen';
-                  }
-                  if (!Uri.tryParse(value)!.hasAbsolutePath) {
-                    return 'Ingresa una URL válida';
+                  if (value != null && value.isNotEmpty) {
+                    final uri = Uri.tryParse(value);
+                    if (uri == null || !uri.hasAbsolutePath) {
+                      return 'Ingresa una URL válida';
+                    }
                   }
                   return null;
                 },
@@ -289,7 +314,10 @@ class _MatchFormScreenState extends State<MatchFormScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.save),
-                  label: Text(isEditing ? 'Actualizar Partido' : 'Crear Partido'),
+                  label: Text(
+                    isEditing ? 'Actualizar Partido' : 'Crear Partido',
+                    style: const TextStyle(fontSize: 16),
+                  ),
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

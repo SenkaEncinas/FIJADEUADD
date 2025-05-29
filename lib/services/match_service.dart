@@ -26,7 +26,7 @@ class MatchService {
       return MatchDetailDto.fromJson(jsonDecode(response.body));
     }
 
-    throw Exception('Publicación no encontrada');
+    throw Exception('Partido no encontrado');
   }
 
   Future<bool> createMatch(MatchCreateDto dto) async {
